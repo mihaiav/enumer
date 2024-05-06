@@ -3,6 +3,7 @@ package main
 import "fmt"
 
 // Arguments to format are:
+//
 //	[1]: type name
 const stringNameToValueMethod = `// %[1]sString retrieves an enum value from the enum constants string name.
 // Throws an error if the param is not part of the enum.
@@ -15,6 +16,7 @@ func %[1]sString(s string) (%[1]s, error) {
 `
 
 // Arguments to format are:
+//
 //	[1]: type name
 const stringValuesMethod = `// %[1]sValues returns all values of the enum
 func %[1]sValues() []%[1]s {
@@ -23,6 +25,16 @@ func %[1]sValues() []%[1]s {
 `
 
 // Arguments to format are:
+//
+//	[1]: type name
+const stringEnumValuesMethod = `// %[1]sValues returns all values of the enum
+func (%[1]s)Enum() []%[1]s {
+	return _%[1]sValues
+}
+`
+
+// Arguments to format are:
+//
 //	[1]: type name
 const stringBelongsMethodLoop = `// IsA%[1]s returns "true" if the value is listed in the enum definition. "false" otherwise
 func (i %[1]s) IsA%[1]s() bool {
@@ -36,6 +48,7 @@ func (i %[1]s) IsA%[1]s() bool {
 `
 
 // Arguments to format are:
+//
 //	[1]: type name
 const stringBelongsMethodSet = `// IsA%[1]s returns "true" if the value is listed in the enum definition. "false" otherwise
 func (i %[1]s) IsA%[1]s() bool {
@@ -79,6 +92,9 @@ func (g *Generator) buildBasicExtras(runs [][]Value, typeName string, runsThresh
 	// Print the basic extra methods
 	g.Printf(stringNameToValueMethod, typeName)
 	g.Printf(stringValuesMethod, typeName)
+	// print Enum()
+	g.Printf(stringEnumValuesMethod, typeName)
+	// print SaveLoad
 	if len(runs) <= runsThreshold {
 		g.Printf(stringBelongsMethodLoop, typeName)
 	} else { // There is a map of values, the code is simpler then
@@ -87,6 +103,7 @@ func (g *Generator) buildBasicExtras(runs [][]Value, typeName string, runsThresh
 }
 
 // Arguments to format are:
+//
 //	[1]: type name
 const jsonMethods = `
 // MarshalJSON implements the json.Marshaler interface for %[1]s
@@ -112,6 +129,7 @@ func (g *Generator) buildJSONMethods(runs [][]Value, typeName string, runsThresh
 }
 
 // Arguments to format are:
+//
 //	[1]: type name
 const textMethods = `
 // MarshalText implements the encoding.TextMarshaler interface for %[1]s
@@ -127,11 +145,29 @@ func (i *%[1]s) UnmarshalText(text []byte) error {
 }
 `
 
+const saveLoadMethods = `
+// MarshalText implements the encoding.TextMarshaler interface for %[1]s
+func (i %[1]s) Save() (any, error) {
+	return i.String(), nil
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface for %[1]s
+func (i *%[1]s) Load(text any) error {
+	var err error
+	*i, err = %[1]sString(text.(string))
+	return err
+}
+`
+
 func (g *Generator) buildTextMethods(runs [][]Value, typeName string, runsThreshold int) {
 	g.Printf(textMethods, typeName)
 }
+func (g *Generator) buildSaveLoadMethods(runs [][]Value, typeName string, runsThreshold int) {
+	g.Printf(saveLoadMethods, typeName)
+}
 
 // Arguments to format are:
+//
 //	[1]: type name
 const yamlMethods = `
 // MarshalYAML implements a YAML Marshaler for %[1]s
