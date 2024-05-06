@@ -50,7 +50,7 @@ var (
 	json      = flag.Bool("json", false, "if true, json marshaling methods will be generated. Default: false")
 	yaml      = flag.Bool("yaml", false, "if true, yaml marshaling methods will be generated. Default: false")
 	text      = flag.Bool("text", false, "if true, text marshaling methods will be generated. Default: false")
-	saveLoad  = flag.Bool("saveLoad", false, "if true, datastore save/load marshaling methods will be generated. Default: false")
+	saveLoad  = flag.Bool("datastore", false, "if true, datastore save/load marshaling methods will be generated. Default: false")
 
 	output          = flag.String("output", "", "output file name; default srcdir/<type>_enumer.go")
 	transformMethod = flag.String("transform", "noop", "enum item name transformation method. Default: noop")
