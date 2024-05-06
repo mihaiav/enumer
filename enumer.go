@@ -203,8 +203,8 @@ const queryMethods = `
 // Register query encoder/decoder function for %[1]s
 func init(){
 	var x %[1]s
-	_query.RegisterEncodeFunc(x,  func(x any) ([]string, error){
-		return []string{x.(%[1]s).String()}, nil
+	_query.RegisterEncodeFunc(x,  func(xv any) ([]string, error){
+		return []string{xv.(%[1]s).String()}, nil
 	})
 	// register decoder func
 	_query.RegisterDecodeFunc(x,  func(xa []string) (any, error){
