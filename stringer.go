@@ -51,6 +51,7 @@ var (
 	yaml      = flag.Bool("yaml", false, "if true, yaml marshaling methods will be generated. Default: false")
 	text      = flag.Bool("text", false, "if true, text marshaling methods will be generated. Default: false")
 	saveLoad  = flag.Bool("datastore", false, "if true, datastore save/load marshaling methods will be generated. Default: false")
+	query     = flag.Bool("query", false, "if true, go-playground/form marshaling methods will be generated. Default: false")
 
 	output          = flag.String("output", "", "output file name; default srcdir/<type>_enumer.go")
 	transformMethod = flag.String("transform", "noop", "enum item name transformation method. Default: noop")
@@ -125,7 +126,7 @@ func main() {
 
 	// Run generate for each type.
 	for _, typeName := range types {
-		g.generate(typeName, *saveLoad, *json, *yaml, *sql, *text, *transformMethod, *trimPrefix, *lineComment)
+		g.generate(typeName, *query, *saveLoad, *json, *yaml, *sql, *text, *transformMethod, *trimPrefix, *lineComment)
 	}
 
 	// Format the output.
@@ -345,7 +346,7 @@ func (g *Generator) replaceValuesWithLineComment(values []Value) {
 }
 
 // generate produces the String method for the named type.
-func (g *Generator) generate(typeName string, includeSaveLoad, includeJSON, includeYAML, includeSQL, includeText bool, transformMethod string, trimPrefix string, lineComment bool) {
+func (g *Generator) generate(typeName string, includeQuery, includeSaveLoad, includeJSON, includeYAML, includeSQL, includeText bool, transformMethod string, trimPrefix string, lineComment bool) {
 	values := make([]Value, 0, 100)
 	for _, file := range g.pkg.files {
 		// Set the state for this run of the walker.
@@ -401,6 +402,9 @@ func (g *Generator) generate(typeName string, includeSaveLoad, includeJSON, incl
 	}
 	if includeSaveLoad {
 		g.buildSaveLoadMethods(runs, typeName, runsThreshold)
+	}
+	if includeQuery {
+		g.buildQueryMethods(runs, typeName, runsThreshold)
 	}
 	if includeYAML {
 		g.buildYAMLMethods(runs, typeName, runsThreshold)

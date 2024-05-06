@@ -145,25 +145,8 @@ func (i *%[1]s) UnmarshalText(text []byte) error {
 }
 `
 
-const saveLoadMethods = `
-// MarshalText implements the encoding.TextMarshaler interface for %[1]s
-func (i %[1]s) Save() (any, error) {
-	return i.String(), nil
-}
-
-// UnmarshalText implements the encoding.TextUnmarshaler interface for %[1]s
-func (i *%[1]s) Load(text any) error {
-	var err error
-	*i, err = %[1]sString(text.(string))
-	return err
-}
-`
-
 func (g *Generator) buildTextMethods(runs [][]Value, typeName string, runsThreshold int) {
 	g.Printf(textMethods, typeName)
-}
-func (g *Generator) buildSaveLoadMethods(runs [][]Value, typeName string, runsThreshold int) {
-	g.Printf(saveLoadMethods, typeName)
 }
 
 // Arguments to format are:
@@ -190,4 +173,54 @@ func (i *%[1]s) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 func (g *Generator) buildYAMLMethods(runs [][]Value, typeName string, runsThreshold int) {
 	g.Printf(yamlMethods, typeName)
+}
+
+// Arguments to format are:
+//
+//	[1]: type name
+const saveLoadMethods = `
+// Save implements the datastore.SaveLoader interface for %[1]s
+func (i %[1]s) Save() (any, error) {
+	return i.String(), nil
+}
+
+// Load implements the datastore.Load interface for %[1]s
+func (i *%[1]s) Load(text any) error {
+	var err error
+	*i, err = %[1]sString(text.(string))
+	return err
+}
+`
+
+func (g *Generator) buildSaveLoadMethods(runs [][]Value, typeName string, runsThreshold int) {
+	g.Printf(saveLoadMethods, typeName)
+}
+
+// Arguments to format are:
+//
+//	[1]: type name
+const queryMethods = `
+// Register query encoder/decoder function for %[1]s
+func init(){
+	var x %[1]s
+	_query.RegisterEncodeFunc(x,  func(x any) ([]string, error){
+		return []string{x.(%[1]s).String()}, nil
+	})
+	// register decoder func
+	_query.RegisterDecodeFunc(x,  func(xa []string) (any, error){
+		var dxa []%[1]s
+		for _, v := range xa{
+			i, err := %[1]sString(v)
+			if err != nil{
+				return dxa, errors.New("_query.RegisterDecodeFunc: " + v + " error " + err.Error())
+			}
+			dxa = append(dxa, i)
+		}
+		return dxa, nil
+	})
+}
+`
+
+func (g *Generator) buildQueryMethods(runs [][]Value, typeName string, runsThreshold int) {
+	g.Printf(queryMethods, typeName)
 }
