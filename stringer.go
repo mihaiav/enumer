@@ -47,11 +47,11 @@ func (af *arrayFlags) Set(value string) error {
 var (
 	typeNames = flag.String("type", "", "comma-separated list of type names; must be set")
 	sql       = flag.Bool("sql", false, "if true, the Scanner and Valuer interface will be implemented.")
-	json      = flag.Bool("json", false, "if true, json marshaling methods will be generated. Default: false")
+	json      = flag.Bool("json", true, "if true, json marshaling methods will be generated. Default: true")
 	yaml      = flag.Bool("yaml", false, "if true, yaml marshaling methods will be generated. Default: false")
-	text      = flag.Bool("text", false, "if true, text marshaling methods will be generated. Default: false")
-	saveLoad  = flag.Bool("datastore", false, "if true, datastore save/load marshaling methods will be generated. Default: false")
-	query     = flag.Bool("query", false, "if true, go-playground/form marshaling methods will be generated. Default: false")
+	text      = flag.Bool("text", true, "if true, text marshaling methods will be generated. Default: true")
+	saveLoad  = flag.Bool("datastore", true, "if true, datastore save/load marshaling methods will be generated. Default: true")
+	query     = flag.Bool("query", true, "if true, go-playground/form marshaling methods will be generated. Default: true")
 
 	output          = flag.String("output", "", "output file name; default srcdir/<type>_enumer.go")
 	transformMethod = flag.String("transform", "noop", "enum item name transformation method. Default: noop")
