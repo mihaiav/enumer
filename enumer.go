@@ -208,6 +208,10 @@ func init(){
 	})
 	// register decoder func
 	_query.RegisterDecodeFunc(x,  func(xa []string) (any, error){
+		if len(xa) > 0{
+			return nil, fmt.Errorf("_query.RegisterDecodeFunc: array not supported on enums")
+		}
+		return %[1]sString(xa[0])
 		var dxa []%[1]s
 		for _, v := range xa{
 			i, err := %[1]sString(v)
