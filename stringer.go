@@ -123,7 +123,6 @@ func main() {
 		g.Printf("\t\"encoding/json\"\n")
 	}
 	if *query {
-		g.Printf("\t\"errors\"\n")
 		g.Printf("\t _query \"x.do.at/encoding/query\"\n")
 	}
 	g.Printf(")\n")

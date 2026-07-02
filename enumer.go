@@ -212,15 +212,6 @@ func init(){
 			return nil, fmt.Errorf("_query.RegisterDecodeFunc: array not supported on enums")
 		}
 		return %[1]sString(xa[0])
-		var dxa []%[1]s
-		for _, v := range xa{
-			i, err := %[1]sString(v)
-			if err != nil{
-				return dxa, errors.New("_query.RegisterDecodeFunc: " + v + " error " + err.Error())
-			}
-			dxa = append(dxa, i)
-		}
-		return dxa, nil
 	})
 }
 `
