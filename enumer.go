@@ -27,8 +27,8 @@ func %[1]sValues() []%[1]s {
 // Arguments to format are:
 //
 //	[1]: type name
-const stringEnumValuesMethod = `// %[1]sValues returns all values of the enum
-func (%[1]s)Enum() []%[1]s {
+const stringEnumValuesMethod = `// Enum returns all values of %[1]s.
+func (%[1]s) Enum() []%[1]s {
 	return _%[1]sValues
 }
 `
@@ -65,6 +65,19 @@ func (g *Generator) buildBasicExtras(runs [][]Value, typeName string, runsThresh
 	for _, values := range runs {
 		for _, value := range values {
 			g.Printf("\t%s, ", value.str)
+		}
+	}
+	g.Printf("}\n\n")
+
+	// Keep the transformed string values as a literal slice. Besides being useful
+	// generated metadata, this is a stable convention for source/AST consumers:
+	//
+	//	var _<Type>StringValues = []string{"value", ...}
+	g.Printf("// _%sStringValues contains the generated string values for AST consumers.\n", typeName)
+	g.Printf("var _%sStringValues = []string{", typeName)
+	for _, values := range runs {
+		for _, value := range values {
+			g.Printf("%q, ", value.name)
 		}
 	}
 	g.Printf("}\n\n")
@@ -179,16 +192,31 @@ func (g *Generator) buildYAMLMethods(runs [][]Value, typeName string, runsThresh
 //
 //	[1]: type name
 const saveLoadMethods = `
-// Save implements the datastore.SaveLoader interface for %[1]s
+// Save implements the datastore.SaveLoader interface for %[1]s.
 func (i %[1]s) Save() (any, error) {
+	if !i.IsA%[1]s() {
+		return nil, fmt.Errorf("invalid %[1]s value: %%d", i)
+	}
 	return i.String(), nil
 }
 
-// Load implements the datastore.Load interface for %[1]s
-func (i *%[1]s) Load(text any) error {
-	var err error
-	*i, err = %[1]sString(text.(string))
-	return err
+// Load implements the datastore.Load interface for %[1]s.
+func (i *%[1]s) Load(value any) error {
+	text, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("value %%v of type %%T cannot be loaded into %[1]s", value, value)
+	}
+	decoded, err := %[1]sString(text)
+	if err != nil {
+		return err
+	}
+	*i = decoded
+	return nil
+}
+
+// Zero reports the datastore representation type for %[1]s.
+func (i %[1]s) Zero() any {
+	return i.String()
 }
 `
 
@@ -208,8 +236,8 @@ func init(){
 	})
 	// register decoder func
 	_query.RegisterDecodeFunc(x,  func(xa []string) (any, error){
-		if len(xa) > 1{
-			return nil, fmt.Errorf("_query.RegisterDecodeFunc: array not supported on enums")
+		if len(xa) != 1{
+			return nil, fmt.Errorf("_query.RegisterDecodeFunc: expected one enum value, got %%d", len(xa))
 		}
 		return %[1]sString(xa[0])
 	})

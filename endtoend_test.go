@@ -4,6 +4,7 @@
 
 // go command is not available on android
 
+//go:build !android
 // +build !android
 
 package main
@@ -81,7 +82,16 @@ func stringerCompileAndRun(t *testing.T, dir, stringer, typeName, fileName, tran
 	}
 	stringSource := filepath.Join(dir, typeName+"_string.go")
 	// Run stringer in temporary directory.
-	err = run(stringer, "-type", typeName, "-output", stringSource, "-transform", transformNameMethod, source)
+	err = run(stringer,
+		"-type", typeName,
+		"-output", stringSource,
+		"-transform", transformNameMethod,
+		"-json=false",
+		"-text=false",
+		"-datastore=false",
+		"-query=false",
+		source,
+	)
 	if err != nil {
 		t.Fatal(err)
 	}

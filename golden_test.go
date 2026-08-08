@@ -1164,9 +1164,35 @@ func runGoldenTest(t *testing.T, test Golden, generateJSON, generateYAML, genera
 	if len(tokens) != 3 {
 		t.Fatalf("%s: need type declaration on first line", test.name)
 	}
-	g.generate(tokens[1], generateJSON, generateYAML, generateSQL, generateText, "noop", prefix, false)
-	got := string(g.format())
+	typeName := tokens[1]
+	g.generate(typeName, false, false, generateJSON, generateYAML, generateSQL, generateText, "noop", prefix, false)
+	got := withoutGeneratedContracts(string(g.format()), typeName)
 	if got != test.output {
 		t.Errorf("%s: got\n====\n%s====\nexpected\n====%s", test.name, got, test.output)
 	}
+}
+
+// The legacy golden fixtures predate the x.do.at contracts. Keep them focused
+// on the original Stringer/encoding output; dedicated contract tests cover the
+// generated AST metadata and Enum method.
+func withoutGeneratedContracts(source, typeName string) string {
+	source = withoutGeneratedBlock(source, "// _"+typeName+"StringValues contains the generated string values for AST consumers.")
+	return withoutGeneratedBlock(source, "// Enum returns all values of "+typeName+".")
+}
+
+func withoutGeneratedBlock(source, marker string) string {
+	markerStart := strings.Index(source, marker)
+	if markerStart < 0 {
+		return source
+	}
+	start := markerStart
+	for start > 0 && source[start-1] == '\n' {
+		start--
+	}
+	endOffset := strings.Index(source[markerStart:], "\n\n")
+	if endOffset < 0 {
+		return source
+	}
+	end := markerStart + endOffset + 2
+	return source[:start] + "\n\n" + strings.TrimLeft(source[end:], "\n")
 }
